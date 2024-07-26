@@ -23,6 +23,6 @@ public class Account {
     String email;
     String fullname;
     @JsonIgnore
-    @OneToMany(mappedBy = "authotirited")
+    @OneToMany(mappedBy = "account")
     List<Authotirited> authotirited;
 }

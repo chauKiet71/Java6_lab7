@@ -12,10 +12,11 @@ import lombok.Setter;
 public class Authotirited {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
     @ManyToOne
     @JoinColumn(name = "username")
-    Account authotirited;
+    Account account;
     @ManyToOne
     @JoinColumn(name = "roleid")
     Role role;
