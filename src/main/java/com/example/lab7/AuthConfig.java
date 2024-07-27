@@ -1,8 +1,12 @@
 package com.example.lab7;
 
+import com.example.lab7.bean.Account;
+import com.example.lab7.dao.AccountsDao;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -10,44 +14,45 @@ import org.springframework.security.config.annotation.web.configurers.*;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.util.stream.Collectors;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)// khai báo để @PreAuthorize mới có thể sử dụng
-public class AuthConfig {
-
+public class AuthConfig implements UserDetailsService {
     @Bean
     public PasswordEncoder getPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
+    @Autowired
+    AccountsDao accountsDao;
 
-        UserDetails user1 = User
-                .withUsername("user1")
-                .password(getPasswordEncoder().encode("123"))
-                .roles("GUEST")
-                .build();
-        UserDetails user2 = User
-                .withUsername("user2")
-                .password(getPasswordEncoder().encode("123"))
-                .roles("USER", "GUEST")
-                .build();
-        UserDetails user3 = User
-                .withUsername("user3")
-                .password(getPasswordEncoder().encode("123"))
-                .roles("USER", "GUEST", "ADMIN")
-                .build();
-        InMemoryUserDetailsManager userDetailManager = new InMemoryUserDetailsManager();
-        userDetailManager.createUser(user1);
-        userDetailManager.createUser(user2);
-        userDetailManager.createUser(user3);
-        return userDetailManager;
+    //demo 7.4
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        try {
+            Account account = accountsDao.findById(username).get();
+            //tao userDetail tu Account
+            String password = account.getPassword();
+            String[] roles = account.getAuthotirited().stream()
+                    .map(au -> au.getRole().getId())
+                    .collect(Collectors.toList()).toArray(new String[0]);
+            System.out.println("user: " + username);
+            System.out.println("user: " + password);
+            return User.withUsername(username)
+                    .password(getPasswordEncoder().encode(password))
+                    .roles(roles).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new UsernameNotFoundException(e.getMessage());
+        }
     }
 
     @Bean

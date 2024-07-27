@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<nav th:insert="~{/home/_menu.html :: navbar}"></nav>
+<hr>
+<h2 th:text="${message}"></h2>
+<hr>
+<h3 th:unless="${remoteUser} != null">
+    Chưa đăng nhập
+</h3>
+<ul th:if="${remoteUser}">
+    <li th:if="${remoteUser}.isUser"></li>
+</ul>
+</body>
+</html>
